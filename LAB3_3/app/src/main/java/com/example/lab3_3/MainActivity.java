@@ -61,16 +61,10 @@ public class MainActivity extends AppCompatActivity {
         mylist = new ArrayList<>();
         myadapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, mylist);
         lv.setAdapter(myadapter);
-
+        //Ham Copy CSDL từ assets vào thư mục Databases
+        processCopy();
         //Mo CSDL trong ung dung len
         database = openOrCreateDatabase("qlsv.db", MODE_PRIVATE, null);
-        // Tạo table
-        try {
-            String Sql = "CREATE TABLE qlsv(MSSV Text primary key,Lop Text, Hoten TEXT )";
-            database.execSQL(Sql);
-        } catch (Exception e) {
-            Log.e("Error", "Table tồn tại");
-        }
         BtnInsert.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -177,5 +171,49 @@ public class MainActivity extends AppCompatActivity {
         }
         c.close();
         myadapter.notifyDataSetChanged();
+    }
+    private void processCopy() {
+    //private app
+        File dbFile = getDatabasePath(DATABASE_NAME);
+        if (!dbFile.exists())
+        {
+            try {
+                CopyDataBaseFromAsset();
+                Toast.makeText(this, "Copying sucess from Assets folder",
+                        Toast.LENGTH_LONG).show();
+            }
+            catch (Exception e){
+                Toast.makeText(this, e.toString(),
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+    private String getDatabasePath() {
+        return getApplicationInfo().dataDir + DB_PATH_SUFFIX+
+                DATABASE_NAME;
+    }
+    // Ham copy file DB tu thu muc Asset vao file DB moi tao ra trong ung dung
+    public void CopyDataBaseFromAsset() {
+        try {
+            InputStream myInput;
+            myInput = getAssets().open(DATABASE_NAME);
+            String outFileName = getDatabasePath();
+            // Kiem tra neu duong dan khong co, thi tao moi file
+            File f = new File(getApplicationInfo().dataDir +
+                    DB_PATH_SUFFIX);
+            if (!f.exists()) f.mkdir();
+            // Mo empty db su dung output stream
+            OutputStream myOutput = new FileOutputStream(outFileName);
+            // Sao chep du lieu bytes tu input toi ouput
+            int size = myInput.available();
+            byte[] buffer = new byte[size];
+            myInput.read(buffer);
+            myOutput.write(buffer);
+            myOutput.flush();
+            myOutput.close();
+            myInput.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
